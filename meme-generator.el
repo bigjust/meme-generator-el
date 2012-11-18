@@ -73,6 +73,7 @@
          (imageID (substring filename (string-match "[0-9]+" filename) (match-end 0))))
     (concat "name: " name ", generator: " generatorID ", image ID: " imageID)))
 
+;;;###autoload
 (defun meme-generator-search (term)
   "Search TERM generator on meme-generator."
   (let* ((json-response (meme-generator-call "Generators_Search" (concat "q=" term)))
@@ -93,6 +94,7 @@
                                                      "&text1=" text2))))
     (gethash "instanceImageUrl" (gethash "result" json-response))))
 
+;;;###autoload
 (defun meme-generator-create (meme-name text1 text2)
   "create meme-generator image instance utilizing "
   (let ((meme-info (assoc meme-name meme-generator-list)))
