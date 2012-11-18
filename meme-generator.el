@@ -57,7 +57,6 @@
     (with-current-buffer response
       (goto-char (point-min))
       (re-search-forward "\n\n" nil t)
-        ;;  (message (buffer-substring (point) (point-max)))
       (let ((json-object-type 'hash-table))
         (json-read-from-string
          (buffer-substring
