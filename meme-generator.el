@@ -31,6 +31,7 @@
 ;; (meme-generator-create ("fry" "not sure if testing api" "or actual meme")
 
 (require 'json)
+(require 'tabulated-list)
 
 (defgroup meme-generator nil
   "memegenerator client, enables image creation for memegenerator.net"
@@ -70,7 +71,15 @@
          (filename (substring imageURL (string-match "[0-9]+\.jpg" imageURL) (match-end 0)))
          (name (gethash "displayName" result))
          (imageID (substring filename (string-match "[0-9]+" filename) (match-end 0))))
-    (concat "name: " name ", generator: " generatorID ", image ID: " imageID)))
+    (list nil (vector name generatorID imageID))))
+
+(define-derived-mode meme-menu-mode tabulated-list-mode "Meme Results"
+  "Major mode for browsing a list of memes."
+  (setq tabulated-list-format [("Name" 30 nil)
+			       ("Generator ID" 13 nil)
+			       ("Image ID"  13 nil)])
+  (setq tabulated-list-padding 2)
+  (tabulated-list-init-header))
 
 ;;;###autoload
 (defun meme-generator-search (term)
@@ -78,11 +87,13 @@
   (let* ((json-response (meme-generator-call "Generators_Search" (concat "q=" term)))
         (result (elt (gethash "result" json-response) 0))
         (results (mapcar 'parse-search-result-object (gethash "result" json-response))))
-    (with-output-to-temp-buffer "memes"
-      (mapcar '(lambda (result)
-                 (print result))
-              results))
-    (concat (number-to-string (length results)) " results")))
+
+    (let ((buf (get-buffer-create "*Memes*")))
+      (with-current-buffer buf
+        (meme-menu-mode)
+        (setq tabulated-list-entries results)
+        (tabulated-list-print)
+        (switch-to-buffer buf)))))
 
 (defun meme-generator-create-image (generator-id image-id text1 text2)
   "create meme-generator image instance with GENERATOR-ID, IMAGE-ID, TEXT1 and TEXT2"
